@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesca Lúdica</title>
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="forms.css">
+    <link rel="stylesheet" href="tables.css">
+    <link rel="stylesheet" href="charts.css">
+    <link rel="stylesheet" href="print.css">
+	<link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0066cc">
+</head>
+<body>
+	    <header>
+	        <h1>PESCA LÚDICA MAR<img src="icons/icon60.png" alt="Ícone de Robalo" style="vertical-align: middle; margin-right: 5px;"></h1>
+        <nav>
+        <ul>
+            <li><a href="https://www.ipma.pt/pt/otempo/prev.localidade.hora/#Aveiro&Ovar" target="_blank"><i class="fas fa-cloud-sun"></i> METEO</a></li>
+            <li><a href="https://tabuademares.com/pt/porto/leixoes" target="_blank"><i class="fas fa-water"></i> MARÉS</a></li>
+            <li><a href="https://pt.windfinder.com/forecasts/" target="_blank"><i class="fas fa-wind"></i> MAR</a></li>
+        </ul>
+    </nav>
+    </header>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" onclick="mostrarSecao('registo')"><i class="fas fa-pencil"></i> Registo de Captura</button>
+            <button class="tab-button" onclick="mostrarSecao('consulta')"><i class="fas fa-search"></i> Consultar Capturas</button>
+        </div>
+
+        <div id="registo" class="tab-content active">
+            <section class="registo-captura">
+                <h2>Registo de captura</h2>
+                <div class="message success" id="messageSuccess">Registo gravado com sucesso!</div>
+                <div class="message error" id="messageError">Preencha todos os campos correctamente!</div>
+
+                <div class="form-grid">
+                    <div class="form-row">
+                        <input type="date" id="dataCaptura" placeholder="Data da Captura">
+                    </div>
+                    <div class="form-row">
+                        <select id="tipoPeixe">
+                            <option value="">Seleccione o tipo de peixe</option>
+                            <option value="Anchova">Anchova</option>
+                            <option value="Baila">Baila</option>
+                            <option value="Bicuda">Bicuda</option>
+							<option value="Choupa">Choupa</option>
+                            <option value="Congro">Congro</option>
+                            <option value="Corvina">Corvina</option>
+                            <option value="Dourada">Dourada</option>
+							<option value="Ferreira">Ferreira</option>
+                            <option value="Goraz">Goraz</option>
+                            <option value="Linguado">Linguado</option>
+                            <option value="Pargo">Pargo</option>
+                            <option value="Peixegalo">Peixe-Galo</option>
+                            <option value="Pregado">Pregado</option>
+                            <option value="Raia">Raia</option>
+                            <option value="Robalo">Robalo</option>
+                            <option value="Rodovalho">Rodovalho</option>
+                            <option value="Ruivo">Ruivo</option>
+                            <option value="Sargo">Sargo</option>
+                            <option value="Sarrajao">Sarrajão</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="tipoPesca">
+                            <option value="">Seleccione o tipo de pesca</option>
+							<option value="Boia">Bóia</option>
+                            <option value="Borracha">Borracha</option>
+                            <option value="Embarcada">Embarcada</option>
+                            <option value="Spinning">Spinning</option>
+                            <option value="Fundo">Surfcasting</option>
+						</select>
+                    </div>
+                    <div class="form-row">
+                        <select id="tipoIsco">
+                            <option value="">Seleccione o isco</option>
+                            <option value="Amostra">ARTIFICIAL-Amostra</option>
+							<option value="Borracha">ARTIFICIAL-Borracha</option>
+							<option value="Vinil">ARTIFICIAL-Vinil</option>
+                            <option value="Ameijoa">Amêijoa</option>
+                            <option value="Bicha">Bicha</option>
+                            <option value="Cagao">Cagão</option>
+                            <option value="Camarao">Camarão</option>
+                            <option value="Caranguejo">Caranguejo</option>
+                            <option value="Casulo">Casulo</option>
+                            <option value="Choco">Choco</option>
+                            <option value="Coreano">Coreano</option>
+                            <option value="Fole">Fole</option>
+                            <option value="Ganso">Ganso</option>
+                            <option value="Lingueirao">Lingueirão/Navalha</option>
+                            <option value="Lula">Lula</option>
+                            <option value="Sardinha">Sardinha</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="mare">
+                            <option value="">Seleccione a maré</option>
+                            <option value="Vazante">Vazante</option>
+                            <option value="BM">Baixa-mar</option>
+                            <option value="Enchente">Enchente</option>
+                            <option value="PM">Preia-mar</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="lua">
+                            <option value="">Seleccione a fase da lua</option>
+                            <option value="Nova">Nova</option>
+                            <option value="Crescente">Crescente</option>
+                            <option value="Cheia">Cheia</option>
+                            <option value="Minguante">Minguante</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="periodoDia">
+                            <option value="">Seleccione o período do dia</option>
+                            <option value="Noite">Noite</option>
+                            <option value="Amanhecer">Amanhecer</option>
+                            <option value="Manha">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Escurecer">Escurecer</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <input type="number" id="peso" placeholder="Peso (g)" step="1" min="1">
+                    </div>
+                    <div class="form-row">
+                        <input type="number" id="tamanho" placeholder="Tamanho (cm)" step="1" min="1">
+                    </div>
+                    <div class="form-row">
+                        <select id="concelho">
+                            <option value="">Seleccione um concelho</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="local">
+                            <option value="">Seleccione um local</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="gravar">
+                    <button onclick="gravarCaptura()"><i class="fas fa-save"></i> Gravar</button>
+                </div>
+            </section>
+        </div>
+
+        <div id="consulta" class="tab-content">
+            <section class="consulta-capturas" id="consultaCapturas">
+                <h3>Consultar capturas</h3>
+                <div class="registo-captura">
+                    <select id="anoConsulta"></select>
+                </div>
+				<div class="actions grid-layout">
+
+                    <button onclick="consultarCapturas()">
+                        <i class="fas fa-search"></i> Detalhe capturas ano seleccionado
+                    </button>
+                    <button onclick="consultarResumoPorLocal()">
+                        <i class="fas fa-chart-bar"></i> Capturas por Local-Ano
+                    </button>
+					<button onclick="imprimirCapturas()">
+                        <i class="fas fa-print"></i> Análise Global
+                    </button>
+                    <button onclick="abrirResumoGeral()">
+                        <i class="fa-solid fa-medal"></i> ANÁLISE GERAL CAPTURAS-ANOS
+                    </button>
+                    <button onclick="abrirRankingMaioresPeixes()">
+                        <i class="fa-solid fa-trophy"></i> RANKING 25 MAIORES PEIXES
+                    </button>
+                    <button onclick="gerarRankingLocais()">
+                        <i class="fas fa-list-ol"></i> RANKING GERAL DOS SPOTS
+                    </button>
+                </div>
+        <div class="table-container" id="containerCapturas"></div>
+		<div class="table-container" id="analiseGlobal"></div>
+		<h3 id="totaisAno"></h3>
+		<div class="table-container">
+		<div id="resumoLocais"></div>
+		</div>
+
+		<!-- Botões de limpar organizados verticalmente com o mesmo espaçamento -->
+		<div class="gravar">
+		<button onclick="limparTabelaCapturas()">
+        <i class="fas fa-eraser"></i> Limpar Detalhe-Ano
+		</button>
+		</div>
+		<div class="gravar">
+		<button onclick="limparAnalise()">
+        <i class="fas fa-eraser"></i> Limpar Análise Local-Ano
+		</button>
+		</div>
+		<div class="gravar">
+		<button onclick="limparAnaliseGlobal()">
+        <i class="fas fa-eraser"></i> Limpar Análise Global
+		</button>
+		</div>
+			</section>
+        </div>
+   
+        <footer>
+            <div class="footer-info">
+                <p>JCunha (v2-2025)</p>
+            </div>
+        </footer>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="utils.js"></script>
+    <script src="resumo_local.js"></script>
+    <script src="print1.js"></script>
+	<script src="print2.js"></script>
+	<script src="print3.js"></script>
+	<script src="print4.js"></script>
+	<script src="script.js"></script>
+    <script src="locais.js"></script>
+	<script src="abas.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log("Service Worker registado com sucesso!"))
+            .catch((error) => console.log("Erro ao registar o Service Worker:", error));
+        }
+    </script>
+</body>
+</html>
