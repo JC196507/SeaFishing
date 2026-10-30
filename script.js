@@ -96,7 +96,7 @@ function gravarCaptura() {
         return;
     }
 
-    let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+    let capturas = obterCapturas();
     let novaCaptura = { data, peso, tamanho, local, tipoIsco, tipoPeixe, tipoPesca, mare, lua, periodoDia };
 
     if (idEdicaoAtual) {
@@ -117,7 +117,7 @@ function gravarCaptura() {
         capturas.push(novaCaptura);
     }
 
-    localStorage.setItem("capturas", JSON.stringify(capturas));
+    if (!guardarCapturas(capturas)) return;
 
     setTimeout(atualizarLocaisOrdenados, 0);
     exibirMensagem('success', 'Registo gravado com sucesso!');
@@ -137,8 +137,14 @@ function chaveCaptura(c) {
 }
 
 function exportarDados() {
-    let capturas = localStorage.getItem("capturas") || "[]";
-    let blob = new Blob([capturas], { type: "application/json" });
+    let conteudo = JSON.stringify({
+        formato: "pesca-ludica-backup",
+        versao: 2,
+        exportadoEm: new Date().toISOString(),
+        capturas: obterCapturas(),
+        locaisCoords: obterCoordsLocais()
+    });
+    let blob = new Blob([conteudo], { type: "application/json" });
     let url = URL.createObjectURL(blob);
     let a = document.createElement("a");
     let dataHoje = new Date().toISOString().slice(0, 10);
@@ -148,7 +154,12 @@ function exportarDados() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    registarBackup();
     exibirMensagem('success', 'Backup exportado com sucesso! Guarda o ficheiro num sítio seguro.');
+}
+
+function todosOsNomesDeLocais() {
+    return concelhosLocais.flatMap(c => c.locais);
 }
 
 function escaparHTML(texto) {
@@ -172,8 +183,15 @@ function importarDados(event) {
     let leitor = new FileReader();
     leitor.onload = function (e) {
         try {
-            let dadosImportados = JSON.parse(e.target.result);
-            if (!Array.isArray(dadosImportados)) {
+            let bruto = JSON.parse(e.target.result);
+            let dadosImportados;
+            let coordsImportadas = null; // só existe em backups do formato novo
+            if (Array.isArray(bruto)) {
+                dadosImportados = bruto; // formato antigo: só capturas
+            } else if (bruto && Array.isArray(bruto.capturas)) {
+                dadosImportados = bruto.capturas;
+                coordsImportadas = filtrarCoordsImportadas(bruto.locaisCoords, todosOsNomesDeLocais());
+            } else {
                 throw new Error("Formato inválido");
             }
             dadosImportados = dadosImportados.map(sanitizarCaptura);
@@ -183,21 +201,31 @@ function importarDados(event) {
 
             if (modo === "substituir") {
                 dadosImportados.forEach(c => { if (!c.id) c.id = gerarIdCaptura(); });
-                localStorage.setItem("capturas", JSON.stringify(dadosImportados));
+                if (!guardarCapturas(dadosImportados)) return;
                 exibirMensagem('success', `${dadosImportados.length} capturas importadas (substituíram os dados anteriores).`);
             } else {
-                let capturasAtuais = JSON.parse(localStorage.getItem("capturas")) || [];
+                let capturasAtuais = obterCapturas();
                 let chavesExistentes = new Set(capturasAtuais.map(c => chaveCaptura(c)));
                 let novas = dadosImportados.filter(c => !chavesExistentes.has(chaveCaptura(c)));
                 novas.forEach(c => { if (!c.id) c.id = gerarIdCaptura(); });
                 let combinadas = capturasAtuais.concat(novas);
-                localStorage.setItem("capturas", JSON.stringify(combinadas));
+                if (!guardarCapturas(combinadas)) return;
                 let repetidas = dadosImportados.length - novas.length;
                 exibirMensagem('success', `${novas.length} novas capturas importadas${repetidas ? ` (${repetidas} já existiam e foram ignoradas)` : ''}.`);
             }
 
+            if (coordsImportadas) {
+                let atuais = obterCoordsLocais();
+                let combinadasCoords = modo === "substituir" ? { ...coordsImportadas } : { ...coordsImportadas, ...atuais };
+                if (guardarCoordsLocais(combinadasCoords)) {
+                    let n = Object.keys(combinadasCoords).length;
+                    if (n) exibirMensagem('success', `Posições dos locais no mapa: ${n}.`);
+                }
+            }
+
             preencherAnos();
             setTimeout(atualizarLocaisOrdenados, 0);
+            atualizarEstadoBackup();
         } catch (err) {
             exibirMensagem('error', 'Ficheiro inválido. Confirma que é um backup exportado por esta app.');
         }
@@ -223,7 +251,7 @@ function limparFormularioRegistro() {
 function consultarCapturas() {
 	construirTabelaCapturas();
     let ano = document.getElementById("anoConsulta").value;
-    let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+    let capturas = obterCapturas();
     let filtradas = capturas.filter(c => c.data.startsWith(ano));
     filtradas.sort((a, b) => new Date(a.data) - new Date(b.data));
 
@@ -283,13 +311,13 @@ document.getElementById("totaisAno").textContent = `Total de capturas: ${filtrad
 
 function removerCaptura(captura, isEdicao = false) {
     if (isEdicao || confirm("Tem certeza que deseja remover esta captura?")) {
-        let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+        let capturas = obterCapturas();
         let chave = chaveCaptura(captura);
         let index = capturas.findIndex(c => chaveCaptura(c) === chave);
 
         if (index !== -1) {
             capturas.splice(index, 1);
-            localStorage.setItem("capturas", JSON.stringify(capturas));
+            if (!guardarCapturas(capturas)) return;
             if (!isEdicao) {
                 consultarCapturas();
                 exibirMensagem("success", "Captura removida com sucesso!");
@@ -345,7 +373,7 @@ function limparAnalise() {
 }
 
 function preencherAnos() {
-    let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+    let capturas = obterCapturas();
     let anos = [...new Set(capturas.map(c => new Date(c.data).getFullYear()))].sort((a, b) => b - a);
     let anoSelect = document.getElementById("anoConsulta");
     anoSelect.innerHTML = ""; // Limpa o select antes de preencher
@@ -369,17 +397,17 @@ function exibirMensagem(tipo, mensagem) {
     }, 3000); // A mensagem desaparece após 3 segundos
 }
 
-function mostrarSecao(idSecao) {
-  // Esconde todas as secções de conteúdo
-  const conteudos = document.querySelectorAll('.tab-content');
-  conteudos.forEach(conteudo => {
-    conteudo.classList.remove('active');
-  });
+// ===== Navegação entre ecrãs =====
+// O ecrã inicial é a base. Cada ecrã aberto fica empilhado no histórico do
+// browser, por isso o botão "Voltar" do telemóvel regressa ao ecrã anterior
+// (e do inicial sai da app, como numa app normal).
+let secaoAtual = 'inicio';
+let profundidadeNavegacao = 0;
 
-  // Remove a classe 'active' de todos os botões de aba
-  const botoes = document.querySelectorAll('.tabs .tab-button');
-  botoes.forEach(botao => {
-    botao.classList.remove('active');
+function aplicarSecao(idSecao) {
+  // Esconde todas as secções de conteúdo
+  document.querySelectorAll('.tab-content').forEach(conteudo => {
+    conteudo.classList.remove('active');
   });
 
   // Mostra a secção selecionada
@@ -387,14 +415,62 @@ function mostrarSecao(idSecao) {
   if (secaoMostrar) {
     secaoMostrar.classList.add('active');
   }
+  secaoAtual = idSecao;
 
-  // Ativa o botão da aba correspondente
-  const botaoAtivar = document.querySelector(`.tabs .tab-button[onclick="mostrarSecao('${idSecao}')"]`);
-  if (botaoAtivar) {
-    botaoAtivar.classList.add('active');
+  // A barra "Início" só aparece fora do ecrã inicial
+  const barra = document.getElementById('barraVoltar');
+  if (barra) barra.style.display = idSecao === 'inicio' ? 'none' : 'flex';
+
+  if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+
+  // O mapa só tem tamanho certo quando o ecrã está visível
+  if (idSecao === 'mapa' && typeof aoMostrarMapa === 'function') {
+    aoMostrarMapa();
+  }
+  if (idSecao === 'inicio' && typeof inicioAtualizar === 'function') {
+    inicioAtualizar();
   }
 }
 
+function mostrarSecao(idSecao) {
+  if (idSecao === 'inicio') {
+    voltarInicio();
+    return;
+  }
+  if (idSecao === secaoAtual) return;
+  profundidadeNavegacao++;
+  try {
+    history.pushState({ secao: idSecao, n: profundidadeNavegacao }, '');
+  } catch (e) { /* sem histórico: a navegação continua a funcionar, só não há "Voltar" */ }
+  aplicarSecao(idSecao);
+}
+
+function voltarInicio() {
+  if (profundidadeNavegacao > 0 && typeof history.go === 'function') {
+    history.go(-profundidadeNavegacao); // o popstate trata de mostrar o início
+    // Rede de segurança, caso o browser não dispare o evento
+    setTimeout(() => {
+      if (secaoAtual !== 'inicio') {
+        profundidadeNavegacao = 0;
+        aplicarSecao('inicio');
+      }
+    }, 400);
+  } else {
+    profundidadeNavegacao = 0;
+    if (secaoAtual !== 'inicio') aplicarSecao('inicio');
+  }
+}
+
+window.addEventListener('popstate', (e) => {
+  const estado = e.state || { secao: 'inicio', n: 0 };
+  profundidadeNavegacao = estado.n || 0;
+  aplicarSecao(estado.secao || 'inicio');
+});
+
 window.onload = () => {
-  mostrarSecao('registo');
+  try {
+    history.replaceState({ secao: 'inicio', n: 0 }, '');
+  } catch (e) { /* ignora */ }
+  profundidadeNavegacao = 0;
+  aplicarSecao('inicio');
 };

@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="print.css">
 	<link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="ícone/icon-192.png">
@@ -33,17 +34,32 @@
     </nav>
     </header>
     <div class="container">
-        <div class="tabs">
-            <button class="tab-button active" onclick="mostrarSecao('registo')"><i class="fas fa-pencil"></i> Registo de Captura</button>
-            <button class="tab-button" onclick="mostrarSecao('consulta')"><i class="fas fa-search"></i> Consultar Capturas</button>
-            <button class="tab-button" onclick="mostrarSecao('analiseAvancada')"><i class="fas fa-chart-line"></i> Análise Avançada</button>
-            <button class="tab-button" onclick="mostrarSecao('dados')"><i class="fas fa-cloud-arrow-down"></i> Dados</button>
+        <div id="barraVoltar" class="barra-voltar" style="display:none">
+            <button type="button" class="botao-voltar" onclick="voltarInicio()"><i class="fas fa-arrow-left"></i> Início</button>
         </div>
 
         <div class="message success" id="messageSuccess"></div>
         <div class="message error" id="messageError"></div>
 
-        <div id="registo" class="tab-content active">
+        <div id="inicio" class="tab-content active">
+            <section class="inicio">
+                <button type="button" class="inicio-principal" onclick="mostrarSecao('registo')">
+                    <i class="fas fa-fish"></i><span>Registar captura</span>
+                </button>
+
+                <div id="inicioResumo" class="inicio-resumo"></div>
+                <p id="inicioBackup" class="estado-backup"></p>
+
+                <div class="inicio-grid">
+                    <button type="button" class="inicio-tile" onclick="mostrarSecao('consulta')"><i class="fas fa-search"></i><span>Consultar capturas</span></button>
+                    <button type="button" class="inicio-tile" onclick="mostrarSecao('mapa')"><i class="fas fa-map-location-dot"></i><span>Mapa dos locais</span></button>
+                    <button type="button" class="inicio-tile" onclick="mostrarSecao('analiseAvancada')"><i class="fas fa-chart-line"></i><span>Análise avançada</span></button>
+                    <button type="button" class="inicio-tile" onclick="mostrarSecao('dados')"><i class="fas fa-cloud-arrow-down"></i><span>Cópia de segurança</span></button>
+                </div>
+            </section>
+        </div>
+
+        <div id="registo" class="tab-content">
             <section class="registo-captura">
                 <h2>Registo de captura</h2>
                 <div class="form-grid">
@@ -209,6 +225,47 @@
 			</section>
         </div>
 
+        <div id="mapa" class="tab-content">
+            <section class="registo-captura">
+                <h2>Mapa dos locais</h2>
+                <p class="mapa-ajuda">Marca cada local uma vez (tocando no mapa ou com o GPS quando lá estiveres). Depois vês onde apanhas mais.</p>
+
+                <div class="form-grid">
+                    <div class="form-row"><select id="mapaAno" onchange="mapaAtualizar(true)"><option value="">Todos os anos</option></select></div>
+                    <div class="form-row">
+                        <select id="mapaMetrica" onchange="mapaAtualizar(false)">
+                            <option value="n">Cor: nº de capturas</option>
+                            <option value="peso">Cor: peso total</option>
+                            <option value="medio">Cor: peso médio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="mapaAviso" class="estado-backup estado-backup-aviso" style="display:none"></div>
+                <div id="mapaContainer"></div>
+                <p class="mapa-legenda">Tamanho = nº de capturas · cor mais escura = valor mais alto · cinzento = sem capturas neste período.</p>
+
+                <div id="mapaEstado" class="estado-backup" style="display:none"></div>
+
+                <h3>Marcar a posição de um local</h3>
+                <div class="form-row"><select id="mapaLocalSelect"><option value="">Escolhe um local</option></select></div>
+                <div class="actions grid-layout">
+                    <button onclick="mapaModoMarcar()"><i class="fas fa-hand-pointer"></i> Tocar no mapa</button>
+                    <button onclick="mapaUsarGPS()"><i class="fas fa-location-crosshairs"></i> Usar o GPS (estou lá)</button>
+                    <button onclick="mapaRemoverPosicao()"><i class="fas fa-trash"></i> Remover posição</button>
+                </div>
+
+                <h3>Locais com capturas</h3>
+                <p id="mapaResumo" class="mapa-ajuda"></p>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Local</th><th>Capturas</th><th>Peso total</th><th>Posição</th></tr></thead>
+                        <tbody id="mapaTabelaCorpo"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
         <div id="analiseAvancada" class="tab-content">
             <section class="registo-captura">
                 <h2>Análise avançada</h2>
@@ -271,6 +328,7 @@
 
                 <h3>Exportar</h3>
                 <p>Gera um ficheiro com todas as tuas capturas. Guarda-o num sítio seguro (email para ti próprio, Drive, etc.).</p>
+                <p id="estadoBackup" class="estado-backup"></p>
                 <div class="gravar">
                     <button onclick="exportarDados()"><i class="fas fa-download"></i> Exportar Dados (.json)</button>
                 </div>
@@ -286,6 +344,8 @@
                 <div class="form-row">
                     <input type="file" id="ficheiroImportacao" accept="application/json,.json" onchange="importarDados(event)">
                 </div>
+
+                <p class="versao-app">Pesca Lúdica · versão <span id="versaoApp"></span></p>
             </section>
         </div>
 
@@ -296,6 +356,7 @@
         </footer>
     </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dados.js"></script>
     <script src="utils.js"></script>
     <script src="resumo_local.js"></script>
     <script src="print1.js"></script>
@@ -305,5 +366,8 @@
 	<script src="script.js"></script>
     <script src="locais.js"></script>
     <script src="analise_avancada.js"></script>
+    <script src="inicio.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="mapa.js"></script>
 </body>
 </html>

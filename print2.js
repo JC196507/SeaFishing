@@ -3,7 +3,7 @@
 
 window.abrirResumoGeral = function () {
     try {
-        let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+        let capturas = obterCapturas();
         let anos = [...new Set(capturas.map(c => c.data.substring(0, 4)))];
         anos.sort();
         let resumoPorAnoEspecie = {};

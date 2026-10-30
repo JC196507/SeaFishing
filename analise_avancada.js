@@ -1,11 +1,11 @@
 // analise_avancada.js
 // Análises mais profissionais: gráficos, cruzamento maré×período, comparação
 // entre anos, e estatísticas (média/mediana) por espécie.
-// Tudo calculado a partir dos mesmos dados já guardados em localStorage("capturas").
+// Tudo calculado a partir dos mesmos dados já guardados em obterCapturas().
 
 // ===== Utilitários =====
 function obterCapturasAA() {
-    return JSON.parse(localStorage.getItem("capturas")) || [];
+    return obterCapturas();
 }
 
 function mediaAA(valores) {

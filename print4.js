@@ -2,7 +2,7 @@
 // print4.js
 window.abrirRankingMaioresPeixes = function () {
     try {
-        let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+        let capturas = obterCapturas();
 
         capturas.sort((a, b) => b.peso - a.peso);
         let maioresCapturas = capturas.slice(0, 25);

@@ -1,6 +1,6 @@
 window.gerarRankingLocais = function () {
     try {
-        let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+        let capturas = obterCapturas();
         let rankingLocais = {};
 
         capturas.forEach(c => {

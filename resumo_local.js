@@ -1,6 +1,6 @@
 function consultarResumoPorLocal() {
     let ano = document.getElementById("anoConsulta").value;
-    let capturas = JSON.parse(localStorage.getItem("capturas")) || [];
+    let capturas = obterCapturas();
     let filtradas = capturas.filter(c => c.data.startsWith(ano));
     let resumo = {}
 
